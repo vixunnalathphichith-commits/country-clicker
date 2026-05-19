@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CLICK FOR YOUR COUNTRY 🌍</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+SC:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{--neon-red:#ff2050;--neon-cyan:#00f5ff;--neon-purple:#bf00ff;--neon-yellow:#ffe600;--bg:#050508;--surface:rgba(255,255,255,0.04);--border:rgba(255,255,255,0.08)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:#fff;font-family:'Noto Sans SC',sans-serif;min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.06) 2px,rgba(0,0,0,0.06) 4px);pointer-events:none;z-index:9999}
+header{text-align:center;padding:1.5rem 1rem 0.5rem}
+header h1{font-family:'Orbitron',monospace;font-size:clamp(1.4rem,5vw,3rem);font-weight:900;letter-spacing:4px;color:var(--neon-cyan);text-shadow:0 0 20px var(--neon-cyan),0 0 60px rgba(0,245,255,0.3);line-height:1}
+header p{font-size:0.72rem;color:rgba(255,255,255,0.35);letter-spacing:3px;margin-top:0.4rem;text-transform:uppercase}
+.live-dot{display:inline-block;width:7px;height:7px;background:var(--neon-red);border-radius:50%;margin-right:6px;animation:pulse 1s infinite;box-shadow:0 0 6px var(--neon-red);vertical-align:middle}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+.container{max-width:680px;margin:0 auto;padding:1rem 1.2rem 3rem}
+.search-wrap{position:relative;margin-bottom:1rem}
+.search-wrap input{width:100%;background:rgba(0,245,255,0.04);border:1px solid rgba(0,245,255,0.2);border-radius:8px;padding:0.7rem 1rem 0.7rem 2.6rem;color:#fff;font-size:0.95rem;font-family:'Noto Sans SC',sans-serif;outline:none;transition:border-color 0.2s;letter-spacing:1px}
+.search-wrap input:focus{border-color:var(--neon-cyan);box-shadow:0 0 12px rgba(0,245,255,0.15)}
+.search-wrap input::placeholder{color:rgba(255,255,255,0.2)}
+.search-icon{position:absolute;left:0.8rem;top:50%;transform:translateY(-50%);opacity:0.3;font-size:1rem}
+.country-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;max-height:52vh;overflow-y:auto;padding-right:2px}
+.country-grid::-webkit-scrollbar{width:3px}
+.country-grid::-webkit-scrollbar-thumb{background:rgba(0,245,255,0.2);border-radius:2px}
+.c-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:0.6rem 0.4rem;text-align:center;cursor:pointer;transition:all 0.15s;user-select:none}
+.c-card:hover{background:rgba(0,245,255,0.08);border-color:rgba(0,245,255,0.4);transform:translateY(-2px);box-shadow:0 4px 16px rgba(0,245,255,0.1)}
+.c-card .flag{font-size:1.8rem;line-height:1;margin-bottom:3px}
+.c-card .cname{font-size:0.65rem;color:rgba(255,255,255,0.5)}
+#game-screen{display:none}
+.city-wrap{position:relative;border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:1rem;background:#000}
+canvas#city-canvas{display:block;width:100%;height:200px}
+.city-level-badge{position:absolute;top:10px;left:12px;font-family:'Orbitron',monospace;font-size:0.62rem;letter-spacing:3px;padding:4px 10px;border-radius:4px;border:1px solid currentColor}
+.my-bar{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid rgba(0,245,255,0.15);border-radius:10px;padding:0.8rem 1rem;margin-bottom:1rem;flex-wrap:wrap}
+.my-flag{font-size:2.2rem;line-height:1}
+.my-info{flex:1;min-width:70px}
+.my-info .lbl{font-size:0.62rem;color:rgba(255,255,255,0.3);letter-spacing:2px;text-transform:uppercase}
+.my-info .nm{font-size:1rem;font-weight:700;color:var(--neon-cyan);text-shadow:0 0 8px rgba(0,245,255,0.4)}
+.change-btn{background:none;border:1px solid rgba(255,255,255,0.12);color:rgba(255,255,255,0.35);font-size:0.65rem;padding:3px 8px;border-radius:4px;cursor:pointer;font-family:'Noto Sans SC',sans-serif;transition:all 0.15s;letter-spacing:1px}
+.change-btn:hover{border-color:var(--neon-cyan);color:var(--neon-cyan)}
+.my-pts-wrap{text-align:right}
+.my-pts{font-family:'Orbitron',monospace;font-size:2rem;font-weight:900;color:var(--neon-red);line-height:1;text-shadow:0 0 12px rgba(255,32,80,0.6)}
+.my-pts-lbl{font-size:0.6rem;color:rgba(255,255,255,0.3);letter-spacing:2px}
+.btn-wrap{text-align:center;margin:0.5rem 0 1.5rem}
+.red-btn{display:inline-flex;align-items:center;justify-content:center;width:160px;height:160px;border-radius:50%;border:none;background:radial-gradient(circle at 35% 30%,#ff4060,#aa0020);cursor:pointer;font-family:'Orbitron',monospace;font-size:1.2rem;font-weight:900;letter-spacing:3px;color:#fff;text-shadow:0 2px 6px rgba(0,0,0,0.6);box-shadow:0 0 0 4px rgba(255,32,80,0.2),0 0 0 10px rgba(255,32,80,0.08),0 0 40px rgba(255,32,80,0.35),inset 0 -4px 12px rgba(0,0,0,0.4);transition:all 0.08s;user-select:none;position:relative}
+.red-btn::before{content:'';position:absolute;inset:8px;border-radius:50%;border:1px solid rgba(255,255,255,0.15)}
+.red-btn:hover{box-shadow:0 0 0 6px rgba(255,32,80,0.3),0 0 0 14px rgba(255,32,80,0.12),0 0 60px rgba(255,32,80,0.5),inset 0 -4px 12px rgba(0,0,0,0.4);transform:scale(1.04)}
+.red-btn:active{transform:scale(0.93)}
+.red-btn.pop{animation:btnpop 0.12s ease-out}
+@keyframes btnpop{0%{transform:scale(0.9)}60%{transform:scale(1.08)}100%{transform:scale(1)}}
+.score-pop{position:fixed;font-family:'Orbitron',monospace;font-size:1.6rem;font-weight:900;color:var(--neon-red);pointer-events:none;animation:floatup 0.8s ease-out forwards;z-index:9998;text-shadow:0 0 10px rgba(255,32,80,0.8)}
+@keyframes floatup{0%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-70px) scale(1.5)}}
+.lb-header{font-family:'Orbitron',monospace;font-size:0.85rem;letter-spacing:3px;color:rgba(255,255,255,0.3);margin-bottom:0.75rem;display:flex;align-items:center;gap:8px}
+.lb-list{display:flex;flex-direction:column;gap:6px}
+.lb-row{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:0.5rem 0.9rem;transition:all 0.4s;position:relative;overflow:hidden}
+.lb-row.me{border-color:rgba(0,245,255,0.3);background:rgba(0,245,255,0.05)}
+.lb-bar-bg{position:absolute;left:0;top:0;bottom:0;transition:width 0.8s cubic-bezier(0.4,0,0.2,1);z-index:0}
+.lb-row>*{position:relative;z-index:1}
+.lb-rank{font-family:'Orbitron',monospace;font-size:1rem;color:rgba(255,255,255,0.15);width:24px;text-align:center;flex-shrink:0}
+.lb-row.r1 .lb-rank{color:var(--neon-yellow);text-shadow:0 0 8px var(--neon-yellow)}
+.lb-row.r2 .lb-rank{color:#c0c0c0}
+.lb-row.r3 .lb-rank{color:#cd7f32}
+.lb-flag{font-size:1.4rem;flex-shrink:0}
+.lb-name{flex:1;font-size:0.8rem;font-weight:700}
+.lb-level{font-size:0.6rem;padding:2px 7px;border-radius:3px;letter-spacing:1px;flex-shrink:0}
+.lb-pts{font-family:'Orbitron',monospace;font-size:1.2rem;font-weight:700;min-width:55px;text-align:right;flex-shrink:0}
+.empty-lb{text-align:center;color:rgba(255,255,255,0.2);font-size:0.8rem;padding:1.5rem;letter-spacing:1px}
+</style>
+</head>
+<body>
+<header>
+  <h1>CLICK FOR YOUR COUNTRY</h1>
+  <p><span class="live-dot"></span>全球实时竞技 · 为你的国家争分</p>
+</header>
+<div class="container">
+  <div id="select-screen">
+    <div class="search-wrap">
+      <span class="search-icon">⌕</span>
+      <input type="text" id="search-input" placeholder="搜索国家 / Search country..." oninput="filterCountries()">
+    </div>
+    <div class="country-grid" id="country-grid"></div>
+  </div>
+  <div id="game-screen">
+    <div class="city-wrap">
+      <canvas id="city-canvas" height="200"></canvas>
+      <div style="position:absolute;top:10px;left:12px">
+        <div class="city-level-badge" id="level-badge">VILLAGE</div>
+      </div>
+    </div>
+    <div class="my-bar">
+      <div class="my-flag" id="my-flag"></div>
+      <div class="my-info">
+        <div class="lbl">你代表的国家</div>
+        <div class="nm" id="my-name"></div>
+      </div>
+      <button class="change-btn" onclick="changeCountry()">换国家</button>
+      <div class="my-pts-wrap">
+        <div class="my-pts" id="my-pts">0</div>
+        <div class="my-pts-lbl">TOTAL PTS</div>
+      </div>
+    </div>
+    <div class="btn-wrap">
+      <button class="red-btn" id="red-btn" onclick="handleClick(event)">CLICK!</button>
+    </div>
+    <div class="lb-header">🏆 &nbsp;GLOBAL RANKING</div>
+    <div class="lb-list" id="lb-list"><div class="empty-lb">LOADING...</div></div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, runTransaction, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+const app = initializeApp({ databaseURL: "https://game-366a0-default-rtdb.firebaseio.com" });
+const db = getDatabase(app);
+const scoresRef = ref(db, 'scores');
+
+const COUNTRIES = [
+  {name:'中国',flag:'🇨🇳',id:'CN'},{name:'美国',flag:'🇺🇸',id:'US'},{name:'日本',flag:'🇯🇵',id:'JP'},
+  {name:'老挝',flag:'🇱🇦',id:'LA'},{name:'泰国',flag:'🇹🇭',id:'TH'},{name:'越南',flag:'🇻🇳',id:'VN'},
+  {name:'英国',flag:'🇬🇧',id:'GB'},{name:'法国',flag:'🇫🇷',id:'FR'},{name:'德国',flag:'🇩🇪',id:'DE'},
+  {name:'俄罗斯',flag:'🇷🇺',id:'RU'},{name:'巴西',flag:'🇧🇷',id:'BR'},{name:'印度',flag:'🇮🇳',id:'IN'},
+  {name:'韩国',flag:'🇰🇷',id:'KR'},{name:'新加坡',flag:'🇸🇬',id:'SG'},{name:'马来西亚',flag:'🇲🇾',id:'MY'},
+  {name:'印度尼西亚',flag:'🇮🇩',id:'ID'},{name:'菲律宾',flag:'🇵🇭',id:'PH'},{name:'缅甸',flag:'🇲🇲',id:'MM'},
+  {name:'柬埔寨',flag:'🇰🇭',id:'KH'},{name:'澳大利亚',flag:'🇦🇺',id:'AU'},{name:'加拿大',flag:'🇨🇦',id:'CA'},
+  {name:'墨西哥',flag:'🇲🇽',id:'MX'},{name:'阿根廷',flag:'🇦🇷',id:'AR'},{name:'意大利',flag:'🇮🇹',id:'IT'},
+  {name:'西班牙',flag:'🇪🇸',id:'ES'},{name:'荷兰',flag:'🇳🇱',id:'NL'},{name:'沙特阿拉伯',flag:'🇸🇦',id:'SA'},
+  {name:'土耳其',flag:'🇹🇷',id:'TR'},{name:'南非',flag:'🇿🇦',id:'ZA'},{name:'埃及',flag:'🇪🇬',id:'EG'},
+  {name:'尼日利亚',flag:'🇳🇬',id:'NG'},{name:'挪威',flag:'🇳🇴',id:'NO'},{name:'瑞典',flag:'🇸🇪',id:'SE'},
+  {name:'波兰',flag:'🇵🇱',id:'PL'},{name:'葡萄牙',flag:'🇵🇹',id:'PT'},{name:'希腊',flag:'🇬🇷',id:'GR'},
+  {name:'巴基斯坦',flag:'🇵🇰',id:'PK'},{name:'孟加拉国',flag:'🇧🇩',id:'BD'},{name:'肯尼亚',flag:'🇰🇪',id:'KE'},
+  {name:'乌克兰',flag:'🇺🇦',id:'UA'},{name:'以色列',flag:'🇮🇱',id:'IL'},{name:'哥伦比亚',flag:'🇨🇴',id:'CO'},
+  {name:'秘鲁',flag:'🇵🇪',id:'PE'},{name:'智利',flag:'🇨🇱',id:'CL'},{name:'摩洛哥',flag:'🇲🇦',id:'MA'},
+  {name:'伊朗',flag:'🇮🇷',id:'IR'},{name:'新西兰',flag:'🇳🇿',id:'NZ'},{name:'芬兰',flag:'🇫🇮',id:'FI'},
+  {name:'丹麦',flag:'🇩🇰',id:'DK'},{name:'文莱',flag:'🇧🇳',id:'BN'},{name:'东帝汶',flag:'🇹🇱',id:'TL'}
+];
+
+const LEVELS = [
+  {name:'VILLAGE', min:0,   neon:'#6dbf67', sky1:'#0a1a0a', sky2:'#1a2a1a', bldColor:'#4a7c4e'},
+  {name:'TOWN',    min:20,  neon:'#ffd060', sky1:'#1a1200', sky2:'#2a1f00', bldColor:'#c8a04a'},
+  {name:'CITY',    min:80,  neon:'#60c8ff', sky1:'#000a1a', sky2:'#001a2e', bldColor:'#4a8ccc'},
+  {name:'METRO',   min:200, neon:'#ff60e0', sky1:'#0f000f', sky2:'#1a001a', bldColor:'#cc4aaa'},
+  {name:'CYBER',   min:500, neon:'#00f5ff', sky1:'#000005', sky2:'#050010', bldColor:'#00b8cc'},
+];
+
+function getLevel(pts){ let lv=LEVELS[0]; for(const l of LEVELS) if(pts>=l.min) lv=l; return lv; }
+function getLevelIdx(pts){ let i=0; LEVELS.forEach((l,idx)=>{if(pts>=l.min)i=idx;}); return i; }
+
+const canvas = document.getElementById('city-canvas');
+const ctx = canvas.getContext('2d');
+let animFrame, cityPts=0, stars=[], rain=[], t=0;
+
+function resizeCanvas(){ canvas.width=canvas.offsetWidth; canvas.height=200; stars=Array.from({length:60},()=>({x:Math.random()*canvas.width,y:Math.random()*120,r:Math.random()*1.2+0.3,tw:Math.random()*Math.PI*2})); rain=Array.from({length:35},()=>({x:Math.random()*canvas.width,y:Math.random()*200,sp:3+Math.random()*4,len:10+Math.random()*15})); }
+
+function shade(hex,p){ let r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16); return `rgb(${Math.max(0,Math.min(255,r+p))},${Math.max(0,Math.min(255,g+p))},${Math.max(0,Math.min(255,b+p))})` }
+
+function drawCity(pts,t){
+  const lv=getLevel(pts), li=getLevelIdx(pts);
+  const W=canvas.width, H=canvas.height;
+  // sky
+  const g=ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,lv.sky1);g.addColorStop(1,lv.sky2);
+  ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  // stars
+  if(li<2){ stars.forEach(s=>{s.tw+=0.04;ctx.globalAlpha=(0.4+Math.sin(s.tw)*0.3)*(1-li*0.4);ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fill();}); ctx.globalAlpha=1; }
+  // moon
+  if(li===0){ ctx.globalAlpha=0.6;ctx.fillStyle='#ffffc8';ctx.beginPath();ctx.arc(W*0.85,28,11,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1; }
+  // rain (cyber)
+  if(li>=4){ rain.forEach(d=>{d.y+=d.sp;if(d.y>H){d.y=-d.len;d.x=Math.random()*W;}ctx.strokeStyle='rgba(0,245,255,0.12)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(d.x,d.y);ctx.lineTo(d.x-1,d.y+d.len);ctx.stroke();}); }
+  // buildings
+  const num=Math.floor(5+li*4+8);
+  for(let i=0;i<num;i++){
+    const f=(Math.sin(i*137.5)*10000)%1*0.98+0.01;
+    const x=(i/num)*W-5+f*10;
+    const w=16+f*30*(0.4+li*0.25);
+    const maxH=25+li*35;
+    const h=(0.35+f*0.65)*maxH;
+    const by=H-h;
+    // body
+    const bg=ctx.createLinearGradient(x,by,x+w,by+h);
+    bg.addColorStop(0,shade(lv.bldColor,10));bg.addColorStop(1,shade(lv.bldColor,-50));
+    ctx.fillStyle=bg;ctx.fillRect(x,by,w,h);
+    // windows
+    const ws=li<2?3:4, wg=li<2?7:6;
+    for(let wy=by+4;wy<H-4;wy+=wg){
+      for(let wx=x+3;wx<x+w-3;wx+=wg){
+        if(Math.sin(wx*13.7+wy*7.3)>0.05){
+          ctx.globalAlpha=li>=2?0.5+Math.sin(t*2+wx*0.3+wy*0.2)*0.4:0.4+Math.sin(wy)*0.25;
+          ctx.fillStyle=li>=3?lv.neon:'rgba(255,255,170,0.9)';
+          ctx.fillRect(wx,wy,ws,ws);
+        }
+      }
+    }
+    ctx.globalAlpha=1;
+    // antenna
+    if(li>=2&&f>0.65){ ctx.strokeStyle=lv.neon;ctx.lineWidth=1.5;ctx.globalAlpha=0.7;ctx.beginPath();ctx.moveTo(x+w/2,by);ctx.lineTo(x+w/2,by-10);ctx.stroke();ctx.fillStyle=lv.neon;ctx.beginPath();ctx.arc(x+w/2,by-12,2.5,0,Math.PI*2);ctx.fill();ctx.globalAlpha=0.4+Math.sin(t*3+i)*0.4;ctx.beginPath();ctx.arc(x+w/2,by-12,5,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1; }
+  }
+  // flying cars
+  if(li>=3){
+    const cx=((t*50)%(W+60))-30, cy=H*0.28+Math.sin(t*0.7)*8;
+    ctx.globalAlpha=0.75;ctx.fillStyle=lv.neon;ctx.beginPath();ctx.ellipse(cx,cy,10,4,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='rgba(255,255,255,0.9)';ctx.beginPath();ctx.arc(cx+12,cy,2,0,Math.PI*2);ctx.fill();
+    ctx.globalAlpha=0.25;ctx.fillStyle=lv.neon;ctx.beginPath();ctx.ellipse(cx-8,cy+1,14,2,0,0,Math.PI*2);ctx.fill();
+    ctx.globalAlpha=1;
+    if(li>=4){
+      const cx2=W-((t*35)%(W+60))+30, cy2=H*0.18+Math.sin(t*0.5+2)*6;
+      ctx.globalAlpha=0.5;ctx.fillStyle='#bf00ff';ctx.beginPath();ctx.ellipse(cx2,cy2,8,3,0,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;
+    }
+  }
+  // neon ground glow
+  if(li>=2){ const gg=ctx.createLinearGradient(0,H-30,0,H);gg.addColorStop(0,'transparent');gg.addColorStop(1,lv.neon+'22');ctx.fillStyle=gg;ctx.fillRect(0,H-30,W,30); }
+  // ground
+  ctx.fillStyle=shade(lv.bldColor,-70);ctx.fillRect(0,H-6,W,6);
+  if(li>=1){ ctx.fillStyle=lv.neon;ctx.globalAlpha=0.35;ctx.fillRect(0,H-2,W,2);ctx.globalAlpha=1; }
+}
+
+function animate(){ t+=0.016; drawCity(cityPts,t); animFrame=requestAnimationFrame(animate); }
+
+function updateBadge(pts){
+  const lv=getLevel(pts), badge=document.getElementById('level-badge');
+  badge.textContent=lv.name;
+  badge.style.cssText=`color:${lv.neon};border-color:${lv.neon};background:rgba(0,0,0,0.65);text-shadow:0 0 8px ${lv.neon};font-family:'Orbitron',monospace;font-size:0.62rem;letter-spacing:3px;padding:4px 10px;border-radius:4px;border:1px solid`;
+}
+
+let myCountry=null, scores={};
+
+window.filterCountries=function(){ const q=document.getElementById('search-input').value.toLowerCase(); renderGrid(q?COUNTRIES.filter(c=>c.name.toLowerCase().includes(q)||c.id.toLowerCase().includes(q)):COUNTRIES); }
+
+function renderGrid(list){ document.getElementById('country-grid').innerHTML=list.map(c=>`<div class="c-card" onclick="selectCountry('${c.id}')"><div class="flag">${c.flag}</div><div class="cname">${c.name}</div></div>`).join(''); }
+
+window.selectCountry=function(id){
+  myCountry=COUNTRIES.find(c=>c.id===id);
+  localStorage.setItem('my_country',id);
+  document.getElementById('select-screen').style.display='none';
+  document.getElementById('game-screen').style.display='block';
+  document.getElementById('my-flag').textContent=myCountry.flag;
+  document.getElementById('my-name').textContent=myCountry.name;
+  resizeCanvas();
+  if(animFrame)cancelAnimationFrame(animFrame);
+  animate();
+  updateUI();
+}
+
+window.changeCountry=function(){ cancelAnimationFrame(animFrame); document.getElementById('select-screen').style.display='block'; document.getElementById('game-screen').style.display='none'; }
+
+window.handleClick=async function(e){
+  if(!myCountry)return;
+  const btn=document.getElementById('red-btn');
+  btn.classList.remove('pop');void btn.offsetWidth;btn.classList.add('pop');
+  await runTransaction(ref(db,'scores/'+myCountry.id),cur=>(cur||0)+1);
+  const pop=document.createElement('div');
+  pop.className='score-pop';pop.textContent='+1';
+  pop.style.cssText=`left:${e.clientX-14}px;top:${e.clientY-14}px`;
+  document.body.appendChild(pop);setTimeout(()=>pop.remove(),800);
+}
+
+function updateUI(){
+  if(!myCountry)return;
+  const myPts=scores[myCountry.id]||0;
+  document.getElementById('my-pts').textContent=myPts.toLocaleString();
+  cityPts=myPts; updateBadge(myPts);
+  const sorted=COUNTRIES.map(c=>({...c,pts:scores[c.id]||0})).filter(c=>c.pts>0).sort((a,b)=>b.pts-a.pts).slice(0,20);
+  const maxPts=sorted[0]?.pts||1;
+  const medals=['🥇','🥈','🥉'], rk=['r1','r2','r3'];
+  const lb=document.getElementById('lb-list');
+  if(!sorted.length){lb.innerHTML='<div class="empty-lb">BE THE FIRST TO CLICK →</div>';return;}
+  lb.innerHTML=sorted.map((c,i)=>{
+    const lv=getLevel(c.pts), isMe=myCountry&&c.id===myCountry.id;
+    return `<div class="lb-row ${i<3?rk[i]:''} ${isMe?'me':''}">
+      <div class="lb-bar-bg" style="width:${Math.round(c.pts/maxPts*100)}%;background:linear-gradient(90deg,${lv.neon}18,transparent)"></div>
+      <div class="lb-rank">${i<3?medals[i]:i+1}</div>
+      <div class="lb-flag">${c.flag}</div>
+      <div class="lb-name">${c.name}${isMe?' ◀':''}</div>
+      <div class="lb-level" style="background:${lv.neon}22;color:${lv.neon};border:1px solid ${lv.neon}44">${lv.name}</div>
+      <div class="lb-pts" style="color:${lv.neon};text-shadow:0 0 8px ${lv.neon}80">${c.pts.toLocaleString()}</div>
+    </div>`;
+  }).join('');
+}
+
+onValue(scoresRef,snap=>{ scores=snap.val()||{}; updateUI(); });
+renderGrid(COUNTRIES);
+window.addEventListener('resize',()=>{ if(document.getElementById('game-screen').style.display!=='none')resizeCanvas(); });
+const saved=localStorage.getItem('my_country');
+if(saved){const c=COUNTRIES.find(x=>x.id===saved);if(c)selectCountry(c.id);}
+</script>
+</body>
+</html>
